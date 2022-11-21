@@ -8,7 +8,8 @@ sg.theme('DarkAmber')
 
 def programasEncontrados(configFile):
     with open(configFile, 'r+') as cf:
-        programasEncontrados = cf.readlines()[2:]
+        programasEncontrados = (line.rstrip() for line in cf)
+        programasEncontrados = list(line for line in programasEncontrados if line)[1:]
     return programasEncontrados
 
 
@@ -26,7 +27,11 @@ def mainWindow():
 
     for p in programasEncontrados(configFile):
         nomeArquivo = (
-            os.path.basename(p).replace('.exe', '').capitalize().replace('\n', '')
+            os.path.basename(p)
+            .replace('.exe', '')
+            .capitalize()
+            .replace('\n', '')
+            .replace(' ', '')
         )
         vetorNomeArquivo.append(nomeArquivo)
 
@@ -38,7 +43,7 @@ def mainWindow():
     layout = [
         [sg.Menu(menubar, tearoff=False, pad=(200, 1))],
         [sg.T('Fast Program Opener')],
-        [sg.LB(vetorNomeArquivo, enable_events=True, key='-LBPROGRAM-', size=(50, 6))],
+        [sg.LB(vetorNomeArquivo, enable_events=True, key='-LBPROGRAM-', size=(50, 10))],
         [sg.RButton('Abrir', key='-BOPEN-', size=(40, 1))],
     ]
 
@@ -59,7 +64,10 @@ def mainWindow():
                     cf.writelines(['\n' + filename])
 
             with open(configFile, 'r+') as cf:
-                programasAtualizados = cf.readlines()[2:]
+                programasAtualizados = (line.rstrip() for line in cf)
+                programasAtualizados = list(
+                    line for line in programasAtualizados if line
+                )[1:]
 
             vetorNomeArquivoAtualizados = []
             for p in programasAtualizados:
@@ -68,6 +76,7 @@ def mainWindow():
                     .replace('.exe', '')
                     .capitalize()
                     .replace('\n', '')
+                    .replace(' ', '')
                 )
                 vetorNomeArquivoAtualizados.append(nomeArquivo)
 
@@ -84,7 +93,6 @@ def mainWindow():
                 for p in programasEncontrados(configFile):
                     programa = p.replace('\n', '')
                     if itemSelecionado.lower() in programa.lower():
-                        print(programa)
                         sp.Popen(
                             [programa],
                             creationflags=sp.DETACHED_PROCESS
