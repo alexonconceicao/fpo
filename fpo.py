@@ -2,37 +2,39 @@ import os
 import subprocess as sp
 
 import PySimpleGUI as sg
+import json
 
 sg.theme('DarkAmber')
+configPath = '.\config'
+configFile = '.\config\locations.json'
 
 
 def programasEncontrados(configFile):
-    with open(configFile, 'r+') as cf:
-        programasEncontrados = (line.rstrip() for line in cf)
-        programasEncontrados = list(line for line in programasEncontrados if line)[1:]
+    with open(configFile, 'r') as cf:
+        programasEncontrados = json.load(cf)
     return programasEncontrados
+
+
+def buscarCaminhoPrograma(nome, configFile):
+    for p in programasEncontrados(configFile)['programas']:
+        if nome == p['nome']:
+            caminho = p['caminho']
+    return caminho
 
 
 def mainWindow():
 
-    configPath = '.\config'
-    configFile = '.\config\config.txt'
     vetorNomeArquivo = []
 
     if not os.path.exists(configFile):
+        dict = {"programas": []}
         if not os.path.exists(configPath):
             os.mkdir(configPath)
-        with open(configFile, 'w+', encoding='utf-8') as cf:
-            cf.write('Lista de programas:\n')
+        with open(configFile, 'w', encoding='utf-8') as cf:
+            json.dump(dict, cf)
 
-    for p in programasEncontrados(configFile):
-        nomeArquivo = (
-            os.path.basename(p)
-            .replace('.exe', '')
-            .capitalize()
-            .replace('\n', '')
-            .replace(' ', '')
-        )
+    for p in programasEncontrados(configFile)['programas']:
+        nomeArquivo = p['nome']
         vetorNomeArquivo.append(nomeArquivo)
 
     menubar = [
@@ -48,59 +50,40 @@ def mainWindow():
     ]
 
     window = sg.Window('FPO', layout, finalize=True, modal=False)
-    lbProgramWindow = window['-LBPROGRAM-']
-    itemSelecionado = ''
-    programa = ''
 
     while True:
         event, values = window.read(timeout=100)
         if event == sg.WIN_CLOSED:
             break
         if event == 'Adicionar programa':
-            filename = sg.popup_get_file('Adicionar programa', no_window=True)
+            caminhoDoArquivo = sg.popup_get_file('Adicionar programa', no_window=True)
+            nomeDoArquivo = sg.popup_get_text('Insira nome personalizado do arquivo:')
+            entry = {
+                'nome': nomeDoArquivo,
+                'caminho': caminhoDoArquivo,
+            }
 
-            if filename not in programasEncontrados(configFile):
-                with open(configFile, 'a+', encoding='utf-8') as cf:
-                    cf.writelines(['\n' + filename])
+            if caminhoDoArquivo not in programasEncontrados(configFile):
 
-            with open(configFile, 'r+') as cf:
-                programasAtualizados = (line.rstrip() for line in cf)
-                programasAtualizados = list(
-                    line for line in programasAtualizados if line
-                )[1:]
+                with open(configFile, 'r+') as cf:
+                    dados = json.load(cf)
+                    dados['programas'].append(entry)
+                    cf.seek(0)
+                    json.dump(dados, cf, indent=4)
+                    vetorNomeArquivosAtualizados = []
+                    for p in dados['programas']:
+                        nomeArquivo = p['nome']
+                        vetorNomeArquivosAtualizados.append(nomeArquivo)
 
-            vetorNomeArquivoAtualizados = []
-            for p in programasAtualizados:
-                nomeArquivo = (
-                    os.path.basename(p)
-                    .replace('.exe', '')
-                    .capitalize()
-                    .replace('\n', '')
-                    .replace(' ', '')
-                )
-                vetorNomeArquivoAtualizados.append(nomeArquivo)
-
-            window['-LBPROGRAM-'].update(values=vetorNomeArquivoAtualizados)
-
-        if event == '-LBPROGRAM-':
-            programaSelecionado = values[event]
-            if programaSelecionado:
-                itemSelecionado = programaSelecionado[0]
-                index = lbProgramWindow.get_indexes()[0]
+                    window['-LBPROGRAM-'].update(values=vetorNomeArquivosAtualizados)
 
         if event == '-BOPEN-':
-            if itemSelecionado != '':
-                for p in programasEncontrados(configFile):
-                    programa = p.replace('\n', '')
-                    if itemSelecionado.lower() in programa.lower():
-                        sp.Popen(
-                            [programa],
-                            creationflags=sp.DETACHED_PROCESS
-                            | sp.CREATE_NEW_PROCESS_GROUP,
-                        )
-
-            else:
-                sg.popup_error('Por favor, selecione um item!')
+            nomePrograma = values['-LBPROGRAM-'][0]
+            caminhoPrograma = buscarCaminhoPrograma(nomePrograma, configFile)
+            sp.Popen(
+                [caminhoPrograma],
+                creationflags=sp.DETACHED_PROCESS | sp.CREATE_NEW_PROCESS_GROUP,
+            )
 
     window.close()
 
