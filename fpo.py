@@ -25,12 +25,10 @@ def findProgramPath(filename, locationsFile):
 
 def addProgram(window):
 
-    menubar, askfilepath, askfilename = languageChooser()
+    items = languageChooser()
 
-    filepath = sg.popup_get_file(askfilepath, no_window=True)
-    filename = sg.popup_get_text(title='FPO', message=askfilename)
-
-    print(filename)
+    filepath = sg.popup_get_file(items[1], no_window=True)
+    filename = sg.popup_get_text(title='FPO', message=items[2])
 
     if filepath == '':
         return
@@ -91,12 +89,12 @@ def configIni():
     return arrayFileName
 
 
-def languageChooser(flag=0):
+def languageChooser():
 
     language = ['ptBR', 'enUS']
 
     if not os.path.exists(configFile):
-        pattern = {"language": language[flag]}
+        pattern = {"language": language[0]}
         if not os.path.exists(configPath):
             os.mkdir(configPath)
         with open(configFile, 'w', encoding='utf-8') as cf:
@@ -110,12 +108,32 @@ def languageChooser(flag=0):
 
     menubar_ptBR = [
         ['&Arquivo', ['&Adicionar programa']],
-        ['&Editar', ['&Editar configuração']],
+        [
+            '&Editar',
+            [
+                '&Editar configuração',
+                '&Idioma',
+                [
+                    'Português',
+                    'Inglês',
+                ],
+            ],
+        ],
     ]
 
     menubar_enUS = [
-        ['&Arquivo', ['&Add program']],
-        ['&Editar', ['&Editar configuração']],
+        ['&File', ['&Add program']],
+        [
+            '&Edit',
+            [
+                '&Edit config',
+                '&Language',
+                [
+                    'Portuguese',
+                    'English',
+                ],
+            ],
+        ],
     ]
 
     with open(configFile, 'r', encoding='utf-8') as cf:
@@ -125,24 +143,28 @@ def languageChooser(flag=0):
         menubar = menubar_ptBR
         askFilename = askFilename_ptBR
         askFilepath = askFilepath_ptBR
+        abrir = 'Abrir'
     else:
         menubar = menubar_enUS
         askFilename = askFilename_enUS
         askFilepath = askFilepath_enUS
+        abrir = 'Open'
 
-    return menubar, askFilepath, askFilename
+    items = [menubar, askFilepath, askFilename, abrir]
+
+    return items
 
 
 def mainWindow():
 
     arrayFileName = configIni()
-    menubar, askFilepath, askFilename = languageChooser()
+    items = languageChooser()
 
     layout = [
-        [sg.Menu(menubar, tearoff=False, pad=(200, 1))],
+        [sg.Menu(items[0], tearoff=False, pad=(200, 1))],
         [sg.T('Fast Program Opener')],
         [sg.LB(arrayFileName, enable_events=True, key='-LBPROGRAM-', size=(25, 10))],
-        [sg.RButton('Abrir', key='-BOPEN-', size=(19, 1))],
+        [sg.RButton(items[3], key='-BOPEN-', size=(19, 1))],
     ]
 
     window = sg.Window('FPO', layout, finalize=True)
@@ -156,6 +178,20 @@ def mainWindow():
             addProgram(window)
         if event == '-BOPEN-':
             buttonOpen(values)
+        if event == 'Português' or event == 'Portuguese':
+            with open(configFile, 'r') as f:
+                data = json.load(f)
+            if data['language'] != 'ptBR':
+                data['language'] = 'ptBR'
+                with open(configFile, 'w') as f:
+                    json.dump(data, f)
+        if event == 'Inglês' or event == 'English':
+            with open(configFile, 'r') as f:
+                data = json.load(f)
+            if data['language'] != 'enUS':
+                data['language'] = 'enUS'
+                with open(configFile, 'w') as f:
+                    json.dump(data, f)
 
     window.close()
 
