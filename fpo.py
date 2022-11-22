@@ -1,8 +1,8 @@
+import json
 import os
 import subprocess as sp
 
 import PySimpleGUI as sg
-import json
 
 sg.theme('DarkAmber')
 configPath = '.\config'
