@@ -49,10 +49,10 @@ def mainWindow():
         [sg.RButton('Abrir', key='-BOPEN-', size=(40, 1))],
     ]
 
-    window = sg.Window('FPO', layout, finalize=True, modal=False)
+    window = sg.Window('FPO', layout, finalize=True)
 
     while True:
-        event, values = window.read(timeout=100)
+        event, values = window.read()
         if event == sg.WIN_CLOSED:
             break
         if event == 'Adicionar programa':
