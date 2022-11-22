@@ -45,8 +45,8 @@ def mainWindow():
     layout = [
         [sg.Menu(menubar, tearoff=False, pad=(200, 1))],
         [sg.T('Fast Program Opener')],
-        [sg.LB(vetorNomeArquivo, enable_events=True, key='-LBPROGRAM-', size=(50, 10))],
-        [sg.RButton('Abrir', key='-BOPEN-', size=(40, 1))],
+        [sg.LB(vetorNomeArquivo, enable_events=True, key='-LBPROGRAM-', size=(25, 10))],
+        [sg.RButton('Abrir', key='-BOPEN-', size=(19, 1))],
     ]
 
     window = sg.Window('FPO', layout, finalize=True)
@@ -80,12 +80,15 @@ def mainWindow():
                     window['-LBPROGRAM-'].update(values=vetorNomeArquivosAtualizados)
 
         if event == '-BOPEN-':
-            nomePrograma = values['-LBPROGRAM-'][0]
-            caminhoPrograma = buscarCaminhoPrograma(nomePrograma, configFile)
-            sp.Popen(
-                [caminhoPrograma],
-                creationflags=sp.DETACHED_PROCESS | sp.CREATE_NEW_PROCESS_GROUP,
-            )
+            if not values['-LBPROGRAM-']:
+                sg.popup_error('Por favor, selecione um item!')
+            else:
+                nomePrograma = values['-LBPROGRAM-'][0]
+                caminhoPrograma = buscarCaminhoPrograma(nomePrograma, configFile)
+                sp.Popen(
+                    [caminhoPrograma],
+                    creationflags=sp.DETACHED_PROCESS | sp.CREATE_NEW_PROCESS_GROUP,
+                )
 
     window.close()
 
