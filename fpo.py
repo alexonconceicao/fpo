@@ -67,11 +67,11 @@ def mainWindow():
 
             if caminhoDoArquivo not in programasEncontrados(configFile):
 
-                with open(configFile, 'r+') as cf:
+                with open(configFile, 'r+', encoding='utf-8') as cf:
                     dados = json.load(cf)
                     dados['programas'].append(entry)
                     cf.seek(0)
-                    json.dump(dados, cf, indent=4)
+                    json.dump(dados, cf, indent=4, ensure_ascii=False)
                     vetorNomeArquivosAtualizados = []
                     for p in dados['programas']:
                         nomeArquivo = p['nome']
