@@ -10,7 +10,7 @@ configFile = '.\config\locations.json'
 
 
 def programasEncontrados(configFile):
-    with open(configFile, 'r') as cf:
+    with open(configFile, 'r', encoding='utf-8') as cf:
         programasEncontrados = json.load(cf)
     return programasEncontrados
 
@@ -57,9 +57,20 @@ def mainWindow():
             break
         # TODO adicionar função para editar arquivo de locations (configFile)
         if event == 'Adicionar programa':
-            # TODO adicionar verificador caso usuário não digite nome personalizado
+
             caminhoDoArquivo = sg.popup_get_file('Adicionar programa', no_window=True)
-            nomeDoArquivo = sg.popup_get_text('Insira nome personalizado do arquivo:')
+            nomeDoArquivo = sg.popup_get_text(
+                title='FPO', message='Insira nome personalizado do arquivo:'
+            )
+
+            if caminhoDoArquivo == '':
+                continue
+
+            if nomeDoArquivo == '':
+                nomeDoArquivo = (
+                    os.path.basename(caminhoDoArquivo).capitalize().replace('.exe', '')
+                )
+
             entry = {
                 'nome': nomeDoArquivo,
                 'caminho': caminhoDoArquivo,
@@ -85,11 +96,13 @@ def mainWindow():
             else:
                 nomePrograma = values['-LBPROGRAM-'][0]
                 caminhoPrograma = buscarCaminhoPrograma(nomePrograma, configFile)
-                sp.Popen(
-                    [caminhoPrograma],
-                    creationflags=sp.DETACHED_PROCESS | sp.CREATE_NEW_PROCESS_GROUP,
-                )
-
+                if caminhoPrograma.endswith('.exe'):
+                    sp.Popen(
+                        [caminhoPrograma],
+                        creationflags=sp.DETACHED_PROCESS | sp.CREATE_NEW_PROCESS_GROUP,
+                    )
+                else:
+                    os.startfile(caminhoPrograma)
     window.close()
 
 
