@@ -38,7 +38,7 @@ def mainWindow():
         vetorNomeArquivo.append(nomeArquivo)
 
     menubar = [
-        ['&Arquivo', ['&Adicionar programa', '&Salvar']],
+        ['&Arquivo', ['&Adicionar programa']],
         ['&Editar', ['&Editar configuração']],
     ]
 
@@ -55,7 +55,9 @@ def mainWindow():
         event, values = window.read()
         if event == sg.WIN_CLOSED:
             break
+        # TODO adicionar função para editar arquivo de locations (configFile)
         if event == 'Adicionar programa':
+            # TODO adicionar verificador caso usuário não digite nome personalizado
             caminhoDoArquivo = sg.popup_get_file('Adicionar programa', no_window=True)
             nomeDoArquivo = sg.popup_get_text('Insira nome personalizado do arquivo:')
             entry = {
